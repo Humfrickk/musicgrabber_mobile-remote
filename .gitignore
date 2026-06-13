@@ -4,6 +4,8 @@
 .claude/
 .vscode/
 .cursor/
+AGENTS.md
+CLAUDE.md
 
 # dependencies
 node_modules/
