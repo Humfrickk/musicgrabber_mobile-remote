@@ -1,3 +1,5 @@
+🚨CAUTION🚨ALERT🚨WIUWIEU🚨WIUWIEU🚨THIS APP WAS MADE WITH THE HELP OF AI🚨NOT INTO IT? JUST PASS BY🚨MADE APP FOR MYSELF; FEEL FREE TO USE🚨NO REGULAR UPDATES🚨
+
 # MusicGrabber Mobile
 
 Android companion app for [MusicGrabber](https://gitlab.com/g33kphr33k/musicgrabber) — search, download, and manage your queue on the go.
