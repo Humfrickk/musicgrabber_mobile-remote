@@ -4,7 +4,12 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
+import { useIncomingSearchListener } from '@/src/hooks/useIncomingSearch';
+import { useJobNotifications } from '@/src/hooks/useJobNotifications';
+import { configureNotificationHandler } from '@/src/services/notifications';
 import { AppProviders } from '@/src/theme';
+
+configureNotificationHandler();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,6 +19,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function AuthenticatedServices() {
+  const { status } = useAuth();
+  const enabled = status === 'authenticated';
+  useJobNotifications(enabled);
+  useIncomingSearchListener(enabled);
+  return null;
+}
 
 function AuthGate() {
   const { status } = useAuth();
@@ -52,10 +65,13 @@ function AuthGate() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#121218' } }}>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <>
+      <AuthenticatedServices />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#121218' } }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </>
   );
 }
 

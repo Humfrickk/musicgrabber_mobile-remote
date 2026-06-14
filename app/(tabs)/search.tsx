@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
+import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -30,6 +31,7 @@ import { getResultQualityLabel, mergeSoulseekResults } from '@/src/utils/searchR
 import { appTheme } from '@/src/theme';
 
 export default function SearchScreen() {
+  const params = useLocalSearchParams<{ q?: string; artist?: string; title?: string }>();
   const [mode, setMode] = useState<SearchMode>('track');
   const [query, setQuery] = useState('');
   const [artistField, setArtistField] = useState('');
@@ -43,6 +45,27 @@ export default function SearchScreen() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [error, setError] = useState<string | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const incomingQuery = typeof params.q === 'string' ? params.q.trim() : '';
+    if (!incomingQuery) return;
+
+    setMode('track');
+    const incomingArtist = typeof params.artist === 'string' ? params.artist.trim() : '';
+    const incomingTitle = typeof params.title === 'string' ? params.title.trim() : '';
+
+    if (incomingArtist && incomingTitle) {
+      setUseSplitFields(true);
+      setArtistField(incomingArtist);
+      setTitleField(incomingTitle);
+      setQuery('');
+    } else {
+      setUseSplitFields(false);
+      setQuery(incomingQuery);
+      setArtistField('');
+      setTitleField('');
+    }
+  }, [params.q, params.artist, params.title]);
 
   const effectiveQuery = useMemo(() => {
     if (useSplitFields) {

@@ -1,158 +1,175 @@
-# MusicGrabber Mobile (Android)
+# MusicGrabber Mobile
 
-Native Android-Client für [MusicGrabber](https://gitlab.com/g33kphr33k/musicgrabber) — suchen, downloaden und Queue unterwegs verwalten.
+Android companion app for [MusicGrabber](https://gitlab.com/g33kphr33k/musicgrabber) — search, download, and manage your queue on the go.
+
+This project is **not** a standalone music downloader. It is a mobile client for a self-hosted MusicGrabber server you run yourself.
+
+## Credits
+
+MusicGrabber Mobile is built on top of the excellent self-hosted project:
+
+- **[MusicGrabber](https://gitlab.com/g33kphr33k/musicgrabber)** by [g33kphr33k](https://gitlab.com/g33kphr33k) — the server that handles search, downloads, tagging, and library management.
+
+Without MusicGrabber, this app would have nothing to talk to. Thank you to the main project and its contributors.
 
 ## Features
 
-- Dual-URL: LAN bevorzugt (`http://192.168.x.x:38274`), Remote-Fallback (`https://musicgrabber.example.com`)
-- Bearer-Login (Multi-User / Peon-Rolle empfohlen)
-- Suche, Preview, Download
-- Queue mit Auto-Refresh, Retry und Stream-Playback
-- Sichere Speicherung von Token und URLs via `expo-secure-store`
+- **Dual URL** — prefers LAN (`http://192.168.x.x:38274`), falls back to remote HTTPS
+- **Bearer auth** — multi-user support; no global API key in the app
+- **Search** — track, artist, and album modes with cover art and quality badges
+- **Soulseek merge** — optional results from your server's Soulseek integration
+- **Queue** — auto-refresh, retry failed jobs, stream finished tracks
+- **Push notifications** — alerts when downloads complete or fail (Android)
+- **Share & deep links** — share text from other apps or open `musicgrabbermobile://` links to pre-fill search
+- **Secure storage** — tokens and server URLs stored with `expo-secure-store`
 
-## Server-Setup (einmalig)
+## Server setup
 
-### 1. Benutzer anlegen
+### Create users
 
 In MusicGrabber **Settings → Users**:
 
-| User | Rolle | Zweck |
-|------|-------|-------|
-| `admin` | admin | Vollzugriff, Konfiguration |
-| `mobile` | peon | Nur Suche, Queue, Downloads |
+| User | Role | Purpose |
+|------|------|---------|
+| `admin` | admin | Full access, configuration |
+| `mobile` | peon | Search, queue, and downloads only |
 
-Ab 2 Usern ist Multi-User-Modus aktiv. Die App nutzt **keinen** globalen API-Key.
+With two or more users, multi-user mode is active. The app uses **no** global API key.
 
-### 2. Öffentliche URL absichern
+### Secure your public URL
 
-- Reverse-Proxy/Tunnel nur für deine öffentliche HTTPS-URL (z. B. `https://musicgrabber.example.com`)
-- HTTPS erzwingen (App akzeptiert Remote nur mit `https://`)
-- Peon-User mit starkem Passwort
-- `ALLOW_API_KEY_QUERY_PARAM` **nicht** aktivieren
+- Expose only your HTTPS reverse proxy / tunnel (e.g. `https://musicgrabber.example.com`)
+- Enforce HTTPS (the app accepts remote URLs only with `https://`)
+- Use a strong password for the peon/mobile user
+- Do **not** enable `ALLOW_API_KEY_QUERY_PARAM`
 
-### 3. Lidarr-Integration
+Library integrations (Lidarr, Navidrome, etc.) are configured on the **MusicGrabber server**, not in this app.
 
-In MusicGrabber **Settings → Integrations**:
-
-- **Lidarr URL:** `http://192.168.x.x:8686` (oder deine interne Lidarr-URL)
-- **Lidarr API Key:** aus Lidarr → Settings → General
-
-MusicGrabber triggert nach jedem erfolgreichen Download einen **Library Rescan** in Lidarr. Das ist keine Indexer-Integration — Singles landen im Music-Ordner und werden von Lidarr beim Scan erkannt.
-
-Optional parallel Navidrome konfigurieren für Streaming.
-
-### 4. Lidarr Root Folder prüfen
-
-Der MusicGrabber-Output (`/music/Singles/...` oder `Albums/...`) muss in einem von Lidarr überwachten Root Folder liegen.
-
-## Entwicklung
+## Development
 
 ### Expo Go (Play Store)
 
-Dieses Projekt nutzt **Expo SDK 54**, weil die Play-Store-Version von Expo Go derzeit nur SDK 54 unterstützt. SDK 55/56 sind dort (Stand 2026) noch nicht verfügbar — ein Upgrade auf SDK 56 führt zur Meldung *„Project is incompatible with this version of Expo Go“*, selbst mit der neuesten Play-Store-App.
+This project uses **Expo SDK 54** because the Play Store version of Expo Go currently supports SDK 54 only. Upgrading to SDK 55/56 will show *"Project is incompatible with this version of Expo Go"* even with the latest Play Store app.
 
-**Ohne Android SDK** (empfohlen für schnelles Testen):
+**Without Android SDK** (fastest way to test):
 
 ```bash
 npm install
 npx expo start --clear
 ```
 
-Expo Go aus dem Play Store installieren, im gleichen WLAN wie der Rechner sein, QR-Code scannen.
+Install Expo Go from the Play Store, stay on the same network as your dev machine, and scan the QR code.
 
-**Alternativen für neuere SDKs:**
+**Alternatives for newer SDKs:**
 
-| Weg | Wann |
-|-----|------|
-| Play Store Expo Go + SDK 54 | Schnelles Testen ohne Build (dieses Projekt) |
-| [expo.dev/go](https://expo.dev/go) APK sideload | SDK 56 auf Android (nicht Play Store) |
-| EAS Build / Dev Client | Produktion, native Module, SDK 55+ |
+| Approach | When to use |
+|----------|-------------|
+| Play Store Expo Go + SDK 54 | Quick testing without a build (this project) |
+| [expo.dev/go](https://expo.dev/go) sideload APK | SDK 56 on Android (not Play Store) |
+| EAS Build / Dev Client | Production, native modules, SDK 55+ |
 
-Mit Android-Emulator (Android Studio + SDK):
+### With Android emulator
 
-1. [Android Studio](https://developer.android.com/studio) installieren, im SDK Manager **Android SDK** und **Platform-Tools** installieren.
-2. SDK-Pfad setzen (typisch `~/Android/Sdk`):
+1. Install [Android Studio](https://developer.android.com/studio) and enable **Android SDK** + **Platform-Tools** in the SDK Manager.
+2. Set the SDK path (typically `~/Android/Sdk`):
 
    ```bash
    cp .env.example .env
-   # ANDROID_HOME in .env eintragen
+   # Set ANDROID_HOME in .env
    ```
 
-3. Emulator starten (Device Manager in Android Studio), dann:
+3. Start an emulator (Device Manager in Android Studio), then:
 
    ```bash
    npm run android
    ```
 
-`npm run android` prüft automatisch, ob `adb`/SDK vorhanden sind. Fehlen sie, startet nur der Expo-Dev-Server (wie `npm start`) — kein blindes Scheitern mehr.
+`npm run android` checks for `adb`/SDK automatically. If they are missing, it starts only the Expo dev server (same as `npm start`) instead of failing silently.
 
-APK ohne lokalen SDK: EAS Build (siehe unten) oder Expo Go aus dem Play Store (SDK 54).
+For APKs without a local SDK, use EAS Build (below) or Expo Go from the Play Store (SDK 54).
 
-## APK bauen (EAS)
+## Build APK (EAS)
 
 ```bash
 npm install -g eas-cli
 eas login
-eas build -p android --profile preview
+npm run build:apk
+# or: eas build -p android --profile preview
 ```
 
-Die `preview`-Profile erzeugt eine sideload-fähige APK.
+The `preview` profile produces a sideloadable APK.
 
-Für lokale Builds ohne EAS-Cloud:
+Local build without EAS cloud:
 
 ```bash
 npx expo prebuild --platform android
 cd android && ./gradlew assembleRelease
 ```
 
-## App-Einrichtung
+## App setup
 
-1. **Server einrichten:** LAN- und Remote-URL eingeben
-2. **Anmelden:** Peon- oder User-Account
-3. **Suche:** Artist - Titel eingeben, Preview optional, Download starten
-4. **Queue:** Fortschritt verfolgen, bei Fehlern Retry
+1. **Server** — enter LAN and remote URLs on first launch
+2. **Login** — use your peon or regular user account
+3. **Search** — pick track / artist / album mode, preview optionally, start download
+4. **Queue** — watch progress, retry failures, play completed tracks
 
-## Architektur
+## Share & deep links
+
+Share plain text from another app (e.g. a track name copied from a browser) — MusicGrabber Mobile appears in the Android share sheet and opens search with the text pre-filled.
+
+Custom URL scheme:
 
 ```
-app/                 Expo Router Screens
-src/api/             MusicGrabber REST Client
-src/context/         Auth State
-src/hooks/           Server Reachability
-src/types/           API Types
+musicgrabbermobile://search?q=Artist+-+Title
+musicgrabbermobile://search?artist=Artist&title=Title
 ```
 
-## API-Endpunkte (genutzt)
+## Push notifications
 
-| Endpoint | Zweck |
-|----------|-------|
-| `GET /api/config` | Server-Health, Version |
+When logged in, the app polls your download queue and sends a local notification when a job moves to **completed** or **failed**. Grant notification permission on first use (Android 13+).
+
+## Architecture
+
+```
+app/                 Expo Router screens
+src/api/             MusicGrabber REST client
+src/context/         Auth state
+src/hooks/           Reachability, notifications, incoming search
+src/services/        Notification channels and alerts
+src/components/      Cover art, album browse, quality badges
+src/utils/           Search metadata, deep-link parsing
+```
+
+## API endpoints used
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/config` | Server health, version |
 | `POST /api/auth/login` | Login |
-| `GET /api/auth/me` | Session prüfen |
-| `POST /api/search` | Track-Suche |
+| `GET /api/auth/me` | Session check |
+| `POST /api/search` | Track search |
+| `POST /api/search/slskd` | Soulseek search merge |
 | `GET /api/preview/{id}` | Preview |
-| `POST /api/download` | Download queueen |
-| `GET /api/jobs` | Queue-Status |
-| `POST /api/jobs/{id}/retry` | Fehlgeschlagenen Job wiederholen |
-| `GET /api/jobs/{id}/stream` | Fertigen Track abspielen |
+| `POST /api/download` | Queue download |
+| `GET /api/jobs` | Queue status |
+| `POST /api/jobs/{id}/retry` | Retry failed job |
+| `GET /api/jobs/{id}/stream` | Play finished track |
 
-## Verifikation (Lidarr E2E)
-
-Server-Checks:
+## Server verification
 
 ```bash
 ./scripts/verify-server.sh
 ```
 
-Nach einem Test-Download in der App:
+Point the script at your server URL to confirm the API is reachable and auth works.
 
-1. Datei auf NAS unter `/music/Singles/...` prüfen
-2. Lidarr → System → Tasks → „Refresh & Scan“ (oder automatisch via MusicGrabber)
-3. Track in Lidarr-Bibliothek sichtbar
-4. Optional: Navidrome-Bibliothek aktualisiert
+## Security
 
-## Sicherheit
+- Token is cleared on logout (`POST /api/auth/logout` + SecureStore wipe)
+- Queue polling: 3–8 s (under typical 200 req/min rate limits)
+- Cleartext HTTP allowed only for LAN (`usesCleartextTraffic: true` in `app.json`)
+- The APK ships with **no** credentials — you configure server URL and login on device
 
-- Token wird bei Logout gelöscht (`POST /api/auth/logout` + SecureStore clear)
-- Queue-Polling: 3–8 s (unter Rate-Limit 200 req/min)
-- Cleartext HTTP nur für LAN (`usesCleartextTraffic: true` in `app.json`)
+## License
+
+See the repository license. MusicGrabber itself is a separate project — refer to [its repository](https://gitlab.com/g33kphr33k/musicgrabber) for licensing and documentation.
